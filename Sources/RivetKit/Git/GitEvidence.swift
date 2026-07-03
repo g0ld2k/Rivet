@@ -49,9 +49,9 @@ public enum GitEvidence {
     }
 
     public static func stagedChanges(_ git: GitClient) throws -> StagedChanges {
-        let nameStatus = try git.run(["diff", "--cached", "--name-status"]).stdout
-        let numstat = try git.run(["diff", "--cached", "--numstat"]).stdout
-        let diff = try git.run(["diff", "--cached", "--no-color", "--no-ext-diff"]).stdout
+        let nameStatus = try requireSuccess(try git.run(["diff", "--cached", "--name-status"]), context: "git diff --cached --name-status")
+        let numstat = try requireSuccess(try git.run(["diff", "--cached", "--numstat"]), context: "git diff --cached --numstat")
+        let diff = try requireSuccess(try git.run(["diff", "--cached", "--no-color", "--no-ext-diff"]), context: "git diff --cached --no-color --no-ext-diff")
         let stats = parseNumstat(numstat)
         let files = parseNameStatus(nameStatus).map { entry in
             let stat = stats[entry.path]
@@ -64,6 +64,13 @@ public enum GitEvidence {
             )
         }
         return StagedChanges(files: files, diff: diff)
+    }
+
+    private static func requireSuccess(_ result: GitResult, context: String) throws -> String {
+        guard result.status == 0 else {
+            throw RivetError.internalFailure("\(context) failed: \(result.stderr)")
+        }
+        return result.stdout
     }
 
     static func parseNameStatus(_ text: String) -> [(status: String, path: String)] {

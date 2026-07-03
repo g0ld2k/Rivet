@@ -76,6 +76,19 @@ import Testing
         #expect(GitEvidence.isInsideWorkTree(GitClient(workingDirectory: dir)) == false)
     }
 
+    @Test func stagedChangesThrowsInternalFailureOutsideRepo() throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        do {
+            _ = try GitEvidence.stagedChanges(GitClient(workingDirectory: dir))
+            Issue.record("Expected stagedChanges to throw outside a git repository")
+        } catch let error as RivetError {
+            #expect(error.kind == .internalFailure)
+            #expect(error.message.contains("git diff --cached --name-status failed"))
+        }
+    }
+
     @Test func repositoryRootResolvesFromSubdirectory() throws {
         let repo = try makeTempRepo()
         let sub = repo.appending(path: "Sources")
