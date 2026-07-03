@@ -40,6 +40,8 @@ struct CommitMessage: AsyncParsableCommand {
         let generator = try CommitMessageGenerator()
         let budgeter = DiffBudgeter(countTokens: { [model = generator.model] text in
             try await model.tokenCount(for: text)
+        }, promptEnvelope: { evidence in
+            CommitPrompt.instructions + "\n\n" + CommitPrompt.prompt(evidence: evidence, scopeCandidates: scopes)
         })
         let pack = try await budgeter.pack(changes: changes)
         if verbose {

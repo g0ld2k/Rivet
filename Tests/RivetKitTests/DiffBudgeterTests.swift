@@ -108,4 +108,25 @@ import Testing
             Issue.record("Expected RivetError.internalFailure, got \(error)")
         }
     }
+
+    @Test func appliesPromptEnvelopeWhenCheckingBudget() async throws {
+        let files = [StagedFile(path: "Sources/A.swift", status: "M", additions: 1, deletions: 0, isBinary: false)]
+        let count: @Sendable (String) async throws -> Int = { text in
+            text.contains("prompt wrapper") ? text.count : 1
+        }
+
+        do {
+            let pack = try await DiffBudgeter(
+                tokenBudget: 20,
+                countTokens: count,
+                promptEnvelope: { "prompt wrapper\n\($0)" }
+            ).pack(changes: changes(diff: smallDiff, files: files))
+            Issue.record("Expected wrapped prompt to exceed budget, returned \(pack.text)")
+        } catch let error as RivetError {
+            #expect(error.kind == .internalFailure)
+            #expect(error.message.contains("summary exceeds token budget"))
+        } catch {
+            Issue.record("Expected RivetError.internalFailure, got \(error)")
+        }
+    }
 }

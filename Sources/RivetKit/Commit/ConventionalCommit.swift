@@ -82,6 +82,9 @@ public enum CommitValidator {
         if subjectContainsNewline {
             violations.append(Violation(message: "subject contains newline"))
         }
+        if c.isBreaking, c.breakingDescription == nil {
+            violations.append(Violation(message: "breaking change description is required"))
+        }
         if let scope = c.scope {
             if scopeContainsUnsafeCharacters {
                 c.scope = nil

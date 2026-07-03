@@ -99,6 +99,18 @@ import Testing
         }
     }
 
+    @Test func validateRejectsBreakingCommitWithoutDescription() {
+        let missing = ConventionalCommit(type: "feat", scope: nil, isBreaking: true,
+                                         subject: "change API", body: nil, breakingDescription: nil)
+        let empty = ConventionalCommit(type: "feat", scope: nil, isBreaking: true,
+                                       subject: "change API", body: nil, breakingDescription: "  ")
+
+        #expect(CommitValidator.validate(missing, scopeCandidates: []).violations
+            .contains { $0.message.contains("breaking") })
+        #expect(CommitValidator.validate(empty, scopeCandidates: []).violations
+            .contains { $0.message.contains("breaking") })
+    }
+
     @Test func wrapRespectsWidthAndExistingNewlines() {
         let wrapped = CommitValidator.wrap("aaa bbb ccc", width: 7)
         #expect(wrapped == "aaa bbb\nccc")
