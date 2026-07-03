@@ -40,7 +40,7 @@ public enum DiffSplitter {
 
         let paths = header.dropFirst(prefix.count)
         var searchStart = paths.startIndex
-        var fallback: String.Index?
+        var firstPostImagePathStart: String.Index?
 
         while let range = paths.range(of: " b/", range: searchStart..<paths.endIndex) {
             let preImagePath = paths[..<range.lowerBound]
@@ -51,12 +51,14 @@ public enum DiffSplitter {
                 return String(postImagePath)
             }
 
-            fallback = postImagePathStart
+            if firstPostImagePathStart == nil {
+                firstPostImagePathStart = postImagePathStart
+            }
             searchStart = postImagePathStart
         }
 
-        guard let fallback else { return header }
-        return String(paths[fallback...])
+        guard let firstPostImagePathStart else { return header }
+        return String(paths[firstPostImagePathStart...])
     }
 }
 
