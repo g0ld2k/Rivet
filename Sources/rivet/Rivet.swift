@@ -6,6 +6,6 @@ struct Rivet: AsyncParsableCommand {
         commandName: "rivet",
         abstract: "Local-first developer writing workflows over repository evidence.",
         version: "0.1.0",
-        subcommands: [Doctor.self]
+        subcommands: [Doctor.self, CommitMessage.self]
     )
 }
