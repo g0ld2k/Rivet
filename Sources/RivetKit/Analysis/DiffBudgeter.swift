@@ -26,6 +26,10 @@ public struct DiffBudgeter: Sendable {
             summaryLines.append("\(file.status)\t\(file.path)\t(\(stat))")
         }
         var text = summaryLines.joined(separator: "\n") + "\n"
+        let summaryTokens = try await countTokens(text)
+        if summaryTokens > tokenBudget {
+            throw RivetError.internalFailure("evidence summary exceeds token budget: \(summaryTokens) tokens > budget \(tokenBudget)")
+        }
 
         let binaries = Set(changes.files.filter(\.isBinary).map(\.path))
         let magnitudes = Dictionary(uniqueKeysWithValues: changes.files.map { ($0.path, $0.magnitude) })

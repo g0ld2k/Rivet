@@ -21,6 +21,7 @@ import Testing
             .pack(changes: changes(diff: smallDiff, files: files))
         #expect(pack.text.contains("+let b = 2"))
         #expect(pack.report.contains { $0.contains("included (full): Sources/A.swift") })
+        #expect(try await Self.fakeCount(pack.text) <= 1_000)
     }
 
     @Test func degradesToHunkHeadersWhenOverBudget() async throws {
@@ -82,5 +83,29 @@ import Testing
         let largeIndex = pack.text.range(of: "diff --git a/large.swift")!.lowerBound
         let smallIndex = pack.text.range(of: "diff --git a/small.swift")!.lowerBound
         #expect(largeIndex < smallIndex)
+    }
+
+    @Test func throwsWhenSummaryAloneExceedsBudget() async throws {
+        let files = (1...20).map {
+            StagedFile(
+                path: "Sources/Generated/VeryLongGeneratedFileNameNumber\($0).swift",
+                status: "M",
+                additions: 1,
+                deletions: 0,
+                isBinary: false
+            )
+        }
+
+        do {
+            let pack = try await DiffBudgeter(tokenBudget: 1, countTokens: Self.fakeCount)
+                .pack(changes: changes(diff: "", files: files))
+            Issue.record("Expected summary to exceed budget, returned \(try await Self.fakeCount(pack.text)) tokens")
+        } catch let error as RivetError {
+            #expect(error.kind == .internalFailure)
+            #expect(error.message.contains("summary exceeds token budget"))
+            #expect(error.message.contains("budget 1"))
+        } catch {
+            Issue.record("Expected RivetError.internalFailure, got \(error)")
+        }
     }
 }
