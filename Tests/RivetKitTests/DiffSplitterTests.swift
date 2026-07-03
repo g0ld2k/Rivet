@@ -56,6 +56,20 @@ import Testing
         #expect(sections.map(\.path) == ["a b/c.swift"])
     }
 
+    @Test func parsesChangedPreImagePathContainingBSlash() {
+        let diff = """
+        diff --git a/a b/old.swift b/new.swift
+        @@ -1 +1 @@
+        -old
+        +new
+        """
+
+        let sections = DiffSplitter.split(diff)
+
+        #expect(DiffSplitter.pathFromHeader("diff --git a/a b/old.swift b/new.swift") == "new.swift")
+        #expect(sections.map(\.path) == ["new.swift"])
+    }
+
     @Test func generatedPathDetection() {
         #expect(GeneratedPaths.isGenerated("Package.resolved"))
         #expect(GeneratedPaths.isGenerated("ios/Podfile.lock"))

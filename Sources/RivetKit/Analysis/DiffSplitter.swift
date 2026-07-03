@@ -40,25 +40,32 @@ public enum DiffSplitter {
 
         let paths = header.dropFirst(prefix.count)
         var searchStart = paths.startIndex
-        var firstPostImagePathStart: String.Index?
+        var candidates: [(preImagePath: Substring, postImagePath: Substring)] = []
 
         while let range = paths.range(of: " b/", range: searchStart..<paths.endIndex) {
             let preImagePath = paths[..<range.lowerBound]
             let postImagePathStart = range.upperBound
             let postImagePath = paths[postImagePathStart...]
+            candidates.append((preImagePath, postImagePath))
 
             if preImagePath == postImagePath {
                 return String(postImagePath)
             }
 
-            if firstPostImagePathStart == nil {
-                firstPostImagePathStart = postImagePathStart
-            }
             searchStart = postImagePathStart
         }
 
-        guard let firstPostImagePathStart else { return header }
-        return String(paths[firstPostImagePathStart...])
+        if let candidate = candidates.first(where: { pathLooksFileLike($0.preImagePath) }) {
+            return String(candidate.postImagePath)
+        }
+
+        guard let candidate = candidates.first else { return header }
+        return String(candidate.postImagePath)
+    }
+
+    private static func pathLooksFileLike(_ path: Substring) -> Bool {
+        guard let name = path.split(separator: "/").last else { return false }
+        return name.contains(".")
     }
 }
 
