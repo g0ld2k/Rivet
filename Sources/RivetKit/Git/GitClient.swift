@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public struct GitResult: Equatable, Sendable {
     public let status: Int32
@@ -9,6 +10,22 @@ public struct GitResult: Equatable, Sendable {
         self.status = status
         self.stdout = stdout
         self.stderr = stderr
+    }
+}
+
+private final class PipeReadBuffer: Sendable {
+    private let data = Mutex(Data())
+
+    func replace(with newData: Data) {
+        data.withLock { storedData in
+            storedData = newData
+        }
+    }
+
+    func value() -> Data {
+        data.withLock { storedData in
+            storedData
+        }
     }
 }
 
@@ -30,14 +47,29 @@ public struct GitClient: Sendable {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
         try process.run()
-        // Read before waiting so a full pipe can never deadlock the child.
-        let outData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let errData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+        let outputGroup = DispatchGroup()
+        let stdoutHandle = stdoutPipe.fileHandleForReading
+        let stderrHandle = stderrPipe.fileHandleForReading
+        let stdoutData = PipeReadBuffer()
+        let stderrData = PipeReadBuffer()
+
+        outputGroup.enter()
+        DispatchQueue.global(qos: .userInitiated).async { [stdoutHandle, stdoutData, outputGroup] in
+            defer { outputGroup.leave() }
+            stdoutData.replace(with: stdoutHandle.readDataToEndOfFile())
+        }
+        outputGroup.enter()
+        DispatchQueue.global(qos: .userInitiated).async { [stderrHandle, stderrData, outputGroup] in
+            defer { outputGroup.leave() }
+            stderrData.replace(with: stderrHandle.readDataToEndOfFile())
+        }
+
         process.waitUntilExit()
+        outputGroup.wait()
         return GitResult(
             status: process.terminationStatus,
-            stdout: String(decoding: outData, as: UTF8.self),
-            stderr: String(decoding: errData, as: UTF8.self)
+            stdout: String(decoding: stdoutData.value(), as: UTF8.self),
+            stderr: String(decoding: stderrData.value(), as: UTF8.self)
         )
     }
 }

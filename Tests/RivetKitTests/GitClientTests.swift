@@ -28,4 +28,15 @@ func makeTempRepo() throws -> URL {
         #expect(result.status != 0)
         #expect(!result.stderr.isEmpty)
     }
+
+    @Test func leavesNonASCIIGitPathsUnescaped() throws {
+        let repo = try makeTempRepo()
+        let filename = "café.txt"
+        try "content".write(to: repo.appending(path: filename), atomically: true, encoding: .utf8)
+        try GitClient(workingDirectory: repo).run(["add", filename])
+
+        let result = try GitClient(workingDirectory: repo).run(["ls-files"])
+        #expect(result.status == 0)
+        #expect(result.stdout == "\(filename)\n")
+    }
 }
