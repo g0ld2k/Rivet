@@ -34,4 +34,23 @@ import Testing
         #expect(decoded?.first?["check"] as? String == "A")
         #expect(decoded?.first?["passed"] as? Bool == true)
     }
+
+    @Test func tokenizerFailureDetailIsSingleLineAndCompact() {
+        let error = NSError(
+            domain: "DoctorTokenizer",
+            code: 42,
+            userInfo: [
+                NSLocalizedDescriptionKey: "Primary failure\nSecondary detail with extra context",
+                "debug": "UserInfo debug blob\nwith multiple lines\nand noisy implementation detail",
+            ]
+        )
+
+        let check = DoctorChecks.tokenizer(.failure(error))
+
+        #expect(check.passed == false)
+        #expect(check.detail.starts(with: "failed: Primary failure"))
+        #expect(!check.detail.contains("\n"))
+        #expect(!check.detail.contains("UserInfo"))
+        #expect(check.detail.count <= 120)
+    }
 }

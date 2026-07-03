@@ -46,8 +46,25 @@ public enum DoctorChecks {
         case .success(let count):
             DoctorCheck(name: "Tokenizer", passed: true, detail: "smoke prompt measured at \(count) tokens")
         case .failure(let error):
-            DoctorCheck(name: "Tokenizer", passed: false, detail: String(describing: error))
+            DoctorCheck(name: "Tokenizer", passed: false, detail: failureDetail(error))
         }
+    }
+
+    public static func failureDetail(_ error: any Error) -> String {
+        let fallback = String(describing: error)
+        let localized = (error as NSError).localizedDescription
+        let message = localized.isEmpty ? fallback : localized
+        let singleLine = message
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+        let compact = singleLine.isEmpty ? "unknown error" : singleLine
+        let prefix = "failed: "
+        let maxMessageLength = 120 - prefix.count
+        if compact.count > maxMessageLength {
+            let end = compact.index(compact.startIndex, offsetBy: maxMessageLength - 3)
+            return prefix + compact[..<end] + "..."
+        }
+        return prefix + compact
     }
 }
 
