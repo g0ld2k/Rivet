@@ -85,6 +85,34 @@ import Testing
         #expect(sections.map(\.path) == ["new.swift"])
     }
 
+    @Test func splitIgnoresPostImageLookingContentInsideHunk() {
+        let diff = """
+        diff --git a/Sources/A.swift b/Sources/A.swift
+        --- a/Sources/A.swift
+        +++ b/Sources/A.swift
+        @@ -1 +1,2 @@
+         let a = 1
+        +++ b/not-a-path.swift
+        """
+
+        let sections = DiffSplitter.split(diff)
+
+        #expect(sections.map(\.path) == ["Sources/A.swift"])
+    }
+
+    @Test func splitUsesRenameMetadataForAmbiguousHeader() {
+        let diff = """
+        diff --git a/src.v1 b/old.swift b/new.swift
+        similarity index 100%
+        rename from src.v1 b/old.swift
+        rename to new.swift
+        """
+
+        let sections = DiffSplitter.split(diff)
+
+        #expect(sections.map(\.path) == ["new.swift"])
+    }
+
     @Test func generatedPathDetection() {
         #expect(GeneratedPaths.isGenerated("Package.resolved"))
         #expect(GeneratedPaths.isGenerated("ios/Podfile.lock"))

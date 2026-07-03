@@ -13,6 +13,7 @@ public enum DiffSplitter {
         var sections: [FileDiff] = []
         var currentPath: String?
         var currentLines: [String] = []
+        var hasEnteredHunk = false
 
         func flush() {
             if let path = currentPath {
@@ -25,10 +26,17 @@ public enum DiffSplitter {
                 flush()
                 currentPath = pathFromHeader(String(line))
                 currentLines = [String(line)]
+                hasEnteredHunk = false
             } else if currentPath != nil {
                 let line = String(line)
-                if line.hasPrefix("+++ b/") {
+                if line.hasPrefix("@@") {
+                    hasEnteredHunk = true
+                } else if !hasEnteredHunk && line.hasPrefix("+++ b/") {
                     currentPath = String(line.dropFirst("+++ b/".count))
+                } else if !hasEnteredHunk && line.hasPrefix("rename to ") {
+                    currentPath = String(line.dropFirst("rename to ".count))
+                } else if !hasEnteredHunk && line.hasPrefix("copy to ") {
+                    currentPath = String(line.dropFirst("copy to ".count))
                 }
                 currentLines.append(line)
             }
