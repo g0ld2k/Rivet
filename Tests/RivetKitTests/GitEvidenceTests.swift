@@ -28,6 +28,26 @@ import Testing
         #expect(stats["Sources/RivetKit/Git/GitClient.swift"]?.deletions == 3)
         #expect(stats["Assets/icon.png"]?.additions == nil)
     }
+
+    @Test func parsesNumstatRenamesUnderNewPath() {
+        let fixture = """
+        4\t2\told/Name.swift => new/Name.swift
+        """
+        let stats = GitEvidence.parseNumstat(fixture)
+        #expect(stats["new/Name.swift"]?.additions == 4)
+        #expect(stats["new/Name.swift"]?.deletions == 2)
+        #expect(stats["old/Name.swift => new/Name.swift"] == nil)
+    }
+
+    @Test func parsesNumstatBracedRenamesUnderNewPath() {
+        let fixture = """
+        4\t2\tSources/{Old.swift => New.swift}
+        """
+        let stats = GitEvidence.parseNumstat(fixture)
+        #expect(stats["Sources/New.swift"]?.additions == 4)
+        #expect(stats["Sources/New.swift"]?.deletions == 2)
+        #expect(stats["Sources/{Old.swift => New.swift}"] == nil)
+    }
 }
 
 @Suite struct GitEvidenceRepoTests {

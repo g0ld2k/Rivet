@@ -81,8 +81,26 @@ public enum GitEvidence {
             let parts = line.split(separator: "\t")
             guard parts.count >= 3 else { continue }
             // "-" additions/deletions mark binary content.
-            result[parts[2...].joined(separator: "\t")] = (Int(parts[0]), Int(parts[1]))
+            result[normalizeNumstatPath(parts[2...].joined(separator: "\t"))] = (Int(parts[0]), Int(parts[1]))
         }
         return result
+    }
+
+    private static func normalizeNumstatPath(_ path: String) -> String {
+        guard path.contains(" => ") else { return path }
+        if let openBrace = path.firstIndex(of: "{"),
+           let closeBrace = path.lastIndex(of: "}"),
+           openBrace < closeBrace {
+            let prefix = path[..<openBrace]
+            let bodyStart = path.index(after: openBrace)
+            let body = path[bodyStart..<closeBrace]
+            let suffixStart = path.index(after: closeBrace)
+            let suffix = path[suffixStart...]
+            if let arrow = body.range(of: " => ") {
+                let newName = body[arrow.upperBound...]
+                return "\(prefix)\(newName)\(suffix)"
+            }
+        }
+        return path.range(of: " => ").map { String(path[$0.upperBound...]) } ?? path
     }
 }
