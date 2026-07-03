@@ -61,6 +61,9 @@ public enum CommitValidator {
         _ commit: ConventionalCommit,
         scopeCandidates: [String]
     ) -> (commit: ConventionalCommit, violations: [Violation]) {
+        let subjectContainsNewline = commit.subject.rangeOfCharacter(from: .newlines) != nil
+        let scopeContainsUnsafeCharacters = commit.scope?.contains(")") == true
+            || commit.scope?.rangeOfCharacter(from: .newlines) != nil
         var c = normalize(commit)
         var violations: [Violation] = []
         let allowedTypes: Set<String> = [
@@ -76,11 +79,11 @@ public enum CommitValidator {
         if c.subject.count > 72 {
             violations.append(Violation(message: "subject exceeds 72 characters"))
         }
-        if c.subject.rangeOfCharacter(from: .newlines) != nil {
+        if subjectContainsNewline {
             violations.append(Violation(message: "subject contains newline"))
         }
         if let scope = c.scope {
-            if scope.contains(")") || scope.rangeOfCharacter(from: .newlines) != nil {
+            if scopeContainsUnsafeCharacters {
                 c.scope = nil
                 violations.append(Violation(message: "scope contains unsafe characters"))
             } else {

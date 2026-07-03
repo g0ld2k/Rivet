@@ -62,6 +62,8 @@ import Testing
         let subjects = [
             "handle empty diff\nwith detail",
             "handle empty diff\rwith detail",
+            "add thing\n",
+            "\radd thing",
         ]
         for subject in subjects {
             let commit = ConventionalCommit(type: "fix", scope: nil, isBreaking: false,
@@ -87,7 +89,7 @@ import Testing
     }
 
     @Test func validateDropsUnsafeScopesAndReportsViolation() {
-        let unsafeScopes = ["Rivet)Kit", "Rivet\nKit", "Rivet\rKit"]
+        let unsafeScopes = ["Rivet)Kit", "Rivet\nKit", "Rivet\rKit", "api\r", "\napi"]
         for scope in unsafeScopes {
             let commit = ConventionalCommit(type: "feat", scope: scope, isBreaking: false,
                                             subject: "add thing", body: nil, breakingDescription: nil)
