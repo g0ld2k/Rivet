@@ -70,6 +70,21 @@ import Testing
         #expect(sections.map(\.path) == ["new.swift"])
     }
 
+    @Test func splitPrefersPostImagePathLineForAmbiguousHeader() {
+        let diff = """
+        diff --git a/src.v1 b/old.swift b/new.swift
+        --- a/src.v1 b/old.swift
+        +++ b/new.swift
+        @@ -1 +1 @@
+        -old
+        +new
+        """
+
+        let sections = DiffSplitter.split(diff)
+
+        #expect(sections.map(\.path) == ["new.swift"])
+    }
+
     @Test func generatedPathDetection() {
         #expect(GeneratedPaths.isGenerated("Package.resolved"))
         #expect(GeneratedPaths.isGenerated("ios/Podfile.lock"))

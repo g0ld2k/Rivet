@@ -26,7 +26,11 @@ public enum DiffSplitter {
                 currentPath = pathFromHeader(String(line))
                 currentLines = [String(line)]
             } else if currentPath != nil {
-                currentLines.append(String(line))
+                let line = String(line)
+                if line.hasPrefix("+++ b/") {
+                    currentPath = String(line.dropFirst("+++ b/".count))
+                }
+                currentLines.append(line)
             }
         }
         flush()
