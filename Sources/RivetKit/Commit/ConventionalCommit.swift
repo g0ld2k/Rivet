@@ -63,16 +63,31 @@ public enum CommitValidator {
     ) -> (commit: ConventionalCommit, violations: [Violation]) {
         var c = normalize(commit)
         var violations: [Violation] = []
+        let allowedTypes: Set<String> = [
+            "feat", "fix", "docs", "style", "refactor", "perf",
+            "test", "build", "ci", "chore", "revert",
+        ]
+        if !allowedTypes.contains(c.type) {
+            violations.append(Violation(message: "type is invalid"))
+        }
         if c.subject.isEmpty {
             violations.append(Violation(message: "subject is empty"))
         }
         if c.subject.count > 72 {
             violations.append(Violation(message: "subject exceeds 72 characters"))
         }
+        if c.subject.contains("\n") {
+            violations.append(Violation(message: "subject contains newline"))
+        }
         if let scope = c.scope {
-            let known = Set(scopeCandidates.map { $0.lowercased() })
-            // Unknown scope is dropped, not rejected — the message stays valid without one.
-            if !known.contains(scope.lowercased()) { c.scope = nil }
+            if scope.contains(")") || scope.contains("\n") {
+                c.scope = nil
+                violations.append(Violation(message: "scope contains unsafe characters"))
+            } else {
+                let known = Set(scopeCandidates.map { $0.lowercased() })
+                // Unknown scope is dropped, not rejected — the message stays valid without one.
+                if !known.contains(scope.lowercased()) { c.scope = nil }
+            }
         }
         return (c, violations)
     }

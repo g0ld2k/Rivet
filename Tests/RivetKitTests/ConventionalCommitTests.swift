@@ -48,6 +48,24 @@ import Testing
             .contains { $0.message.contains("72") })
     }
 
+    @Test func validateFlagsInvalidTypes() {
+        let invalidTypes = ["banana", "Feat", "fi x", "fix\nfeat"]
+        for type in invalidTypes {
+            let commit = ConventionalCommit(type: type, scope: nil, isBreaking: false,
+                                            subject: "add thing", body: nil, breakingDescription: nil)
+            #expect(CommitValidator.validate(commit, scopeCandidates: []).violations
+                .contains { $0.message.contains("type") })
+        }
+    }
+
+    @Test func validateFlagsSubjectsContainingNewlines() {
+        let commit = ConventionalCommit(type: "fix", scope: nil, isBreaking: false,
+                                        subject: "handle empty diff\nwith detail",
+                                        body: nil, breakingDescription: nil)
+        #expect(CommitValidator.validate(commit, scopeCandidates: []).violations
+            .contains { $0.message.contains("newline") })
+    }
+
     @Test func validateDropsUnknownScopeSilently() {
         let commit = ConventionalCommit(type: "feat", scope: "Nonsense", isBreaking: false,
                                         subject: "add thing", body: nil, breakingDescription: nil)
@@ -61,6 +79,17 @@ import Testing
                                         subject: "add thing", body: nil, breakingDescription: nil)
         let result = CommitValidator.validate(commit, scopeCandidates: ["RivetKit"])
         #expect(result.commit.scope == "rivetkit")
+    }
+
+    @Test func validateDropsUnsafeScopesAndReportsViolation() {
+        let unsafeScopes = ["Rivet)Kit", "Rivet\nKit"]
+        for scope in unsafeScopes {
+            let commit = ConventionalCommit(type: "feat", scope: scope, isBreaking: false,
+                                            subject: "add thing", body: nil, breakingDescription: nil)
+            let result = CommitValidator.validate(commit, scopeCandidates: [scope])
+            #expect(result.commit.scope == nil)
+            #expect(result.violations.contains { $0.message.contains("scope") })
+        }
     }
 
     @Test func wrapRespectsWidthAndExistingNewlines() {
