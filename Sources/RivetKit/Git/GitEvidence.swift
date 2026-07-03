@@ -30,7 +30,8 @@ public struct StagedChanges: Equatable, Sendable {
 
 public enum GitEvidence {
     public static func isInsideWorkTree(_ git: GitClient) -> Bool {
-        (try? git.run(["rev-parse", "--is-inside-work-tree"]))?.status == 0
+        guard let result = try? git.run(["rev-parse", "--is-inside-work-tree"]), result.status == 0 else { return false }
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines) == "true"
     }
 
     public static func repositoryRoot(_ git: GitClient) -> URL? {

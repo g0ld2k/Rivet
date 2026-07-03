@@ -76,6 +76,11 @@ import Testing
         #expect(GitEvidence.isInsideWorkTree(GitClient(workingDirectory: dir)) == false)
     }
 
+    @Test func gitDirectoryIsNotInsideWorkTree() throws {
+        let repo = try makeTempRepo()
+        #expect(GitEvidence.isInsideWorkTree(GitClient(workingDirectory: repo.appending(path: ".git"))) == false)
+    }
+
     @Test func stagedChangesThrowsInternalFailureOutsideRepo() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
