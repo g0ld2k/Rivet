@@ -76,11 +76,11 @@ public enum CommitValidator {
         if c.subject.count > 72 {
             violations.append(Violation(message: "subject exceeds 72 characters"))
         }
-        if c.subject.contains("\n") {
+        if c.subject.rangeOfCharacter(from: .newlines) != nil {
             violations.append(Violation(message: "subject contains newline"))
         }
         if let scope = c.scope {
-            if scope.contains(")") || scope.contains("\n") {
+            if scope.contains(")") || scope.rangeOfCharacter(from: .newlines) != nil {
                 c.scope = nil
                 violations.append(Violation(message: "scope contains unsafe characters"))
             } else {

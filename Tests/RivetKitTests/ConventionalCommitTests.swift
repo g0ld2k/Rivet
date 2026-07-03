@@ -59,11 +59,16 @@ import Testing
     }
 
     @Test func validateFlagsSubjectsContainingNewlines() {
-        let commit = ConventionalCommit(type: "fix", scope: nil, isBreaking: false,
-                                        subject: "handle empty diff\nwith detail",
-                                        body: nil, breakingDescription: nil)
-        #expect(CommitValidator.validate(commit, scopeCandidates: []).violations
-            .contains { $0.message.contains("newline") })
+        let subjects = [
+            "handle empty diff\nwith detail",
+            "handle empty diff\rwith detail",
+        ]
+        for subject in subjects {
+            let commit = ConventionalCommit(type: "fix", scope: nil, isBreaking: false,
+                                            subject: subject, body: nil, breakingDescription: nil)
+            #expect(CommitValidator.validate(commit, scopeCandidates: []).violations
+                .contains { $0.message.contains("newline") })
+        }
     }
 
     @Test func validateDropsUnknownScopeSilently() {
@@ -82,7 +87,7 @@ import Testing
     }
 
     @Test func validateDropsUnsafeScopesAndReportsViolation() {
-        let unsafeScopes = ["Rivet)Kit", "Rivet\nKit"]
+        let unsafeScopes = ["Rivet)Kit", "Rivet\nKit", "Rivet\rKit"]
         for scope in unsafeScopes {
             let commit = ConventionalCommit(type: "feat", scope: scope, isBreaking: false,
                                             subject: "add thing", body: nil, breakingDescription: nil)
