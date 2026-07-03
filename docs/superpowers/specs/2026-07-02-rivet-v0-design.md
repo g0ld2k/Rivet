@@ -174,8 +174,9 @@ Structure is guaranteed by constrained decoding; remaining checks:
 
 - stdout: the formatted Conventional Commit message, nothing else — pipe-clean
   always (`git commit -eF <(rivet commit-message)` works day one).
-- stderr: progress spinner, streamed draft preview, and rationale (suppress
-  with `--quiet`).
+- stderr: a dim status line while generating, and the rationale (suppress
+  with `--quiet`). (Animated spinner and streamed preview were dropped during
+  implementation planning as presentation-only complexity.)
 - `--json`: `{type, scope, subject, body, breaking, rationale}` to stdout
   instead of the formatted message.
 - No repository mutation.
