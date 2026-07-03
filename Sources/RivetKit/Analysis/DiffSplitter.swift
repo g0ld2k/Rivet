@@ -35,8 +35,28 @@ public enum DiffSplitter {
 
     static func pathFromHeader(_ header: String) -> String {
         // "diff --git a/X b/Y" → Y (the post-image path)
-        guard let range = header.range(of: " b/") else { return header }
-        return String(header[range.upperBound...])
+        let prefix = "diff --git a/"
+        guard header.hasPrefix(prefix) else { return header }
+
+        let paths = header.dropFirst(prefix.count)
+        var searchStart = paths.startIndex
+        var fallback: String.Index?
+
+        while let range = paths.range(of: " b/", range: searchStart..<paths.endIndex) {
+            let preImagePath = paths[..<range.lowerBound]
+            let postImagePathStart = range.upperBound
+            let postImagePath = paths[postImagePathStart...]
+
+            if preImagePath == postImagePath {
+                return String(postImagePath)
+            }
+
+            fallback = postImagePathStart
+            searchStart = postImagePathStart
+        }
+
+        guard let fallback else { return header }
+        return String(paths[fallback...])
     }
 }
 

@@ -28,6 +28,20 @@ import Testing
         #expect(DiffSplitter.split("").isEmpty)
     }
 
+    @Test func parsesPostImagePathContainingBSlash() {
+        let diff = """
+        diff --git a/a b/c.swift b/a b/c.swift
+        @@ -1 +1 @@
+        -old
+        +new
+        """
+
+        let sections = DiffSplitter.split(diff)
+
+        #expect(DiffSplitter.pathFromHeader("diff --git a/a b/c.swift b/a b/c.swift") == "a b/c.swift")
+        #expect(sections.map(\.path) == ["a b/c.swift"])
+    }
+
     @Test func generatedPathDetection() {
         #expect(GeneratedPaths.isGenerated("Package.resolved"))
         #expect(GeneratedPaths.isGenerated("ios/Podfile.lock"))
