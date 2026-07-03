@@ -37,7 +37,7 @@ evidence and which was elided to stay within the on-device token budget.
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 2 | Usage error |
+| 64 | Usage error |
 | 3 | Not a git repository |
 | 4 | No staged changes |
 | 5 | Model unavailable (run `rivet doctor`) |
