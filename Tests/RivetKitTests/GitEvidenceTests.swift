@@ -102,4 +102,27 @@ import Testing
         let root = GitEvidence.repositoryRoot(GitClient(workingDirectory: sub))
         #expect(root?.resolvingSymlinksInPath().path == repo.resolvingSymlinksInPath().path)
     }
+
+    @Test func stagedManifestIgnoresUnstagedWorkingTreeEdits() throws {
+        let repo = try makeTempRepo()
+        let git = GitClient(workingDirectory: repo)
+        let manifestURL = repo.appending(path: "Package.swift")
+        try """
+        // swift-tools-version: 6.2
+        import PackageDescription
+        let package = Package(name: "Demo", targets: [.target(name: "IndexedTarget")])
+        """.write(to: manifestURL, atomically: true, encoding: .utf8)
+        try git.run(["add", "Package.swift"])
+
+        try """
+        // swift-tools-version: 6.2
+        import PackageDescription
+        let package = Package(name: "Demo", targets: [.target(name: "WorkingTreeTarget")])
+        """.write(to: manifestURL, atomically: true, encoding: .utf8)
+
+        let manifest = try GitEvidence.stagedFileText(git, path: "Package.swift")
+        let scopes = ScopeInference.candidates(paths: ["Sources/IndexedTarget/Foo.swift"], packageManifest: manifest)
+        #expect(scopes.contains("IndexedTarget"))
+        #expect(!scopes.contains("WorkingTreeTarget"))
+    }
 }

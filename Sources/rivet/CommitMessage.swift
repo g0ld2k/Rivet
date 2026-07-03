@@ -33,8 +33,7 @@ struct CommitMessage: AsyncParsableCommand {
         guard GitEvidence.isInsideWorkTree(git) else { throw RivetError.notAGitRepository }
         guard try GitEvidence.hasStagedChanges(git) else { throw RivetError.noStagedChanges }
         let changes = try GitEvidence.stagedChanges(git)
-        let root = GitEvidence.repositoryRoot(git) ?? git.workingDirectory
-        let manifest = try? String(contentsOf: root.appending(path: "Package.swift"), encoding: .utf8)
+        let manifest = try GitEvidence.stagedFileText(git, path: "Package.swift")
 
         // Analyze (generator init first: availability gate + prewarm overlap budgeting)
         let scopes = ScopeInference.candidates(paths: changes.files.map(\.path), packageManifest: manifest)

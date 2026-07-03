@@ -67,6 +67,12 @@ public enum GitEvidence {
         return StagedChanges(files: files, diff: diff)
     }
 
+    public static func stagedFileText(_ git: GitClient, path: String) throws -> String? {
+        let result = try git.run(["show", ":\(path)"])
+        guard result.status == 0 else { return nil }
+        return result.stdout
+    }
+
     private static func requireSuccess(_ result: GitResult, context: String) throws -> String {
         guard result.status == 0 else {
             throw RivetError.internalFailure("\(context) failed: \(result.stderr)")
