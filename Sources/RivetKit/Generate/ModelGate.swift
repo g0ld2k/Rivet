@@ -38,7 +38,13 @@ public enum GenerationFailure {
                 return .modelUnavailable("model assets became unavailable mid-request; run `rivet doctor`")
             case .concurrentRequests:
                 return .generationFailed("another Foundation Models request is already running")
-            default:
+            case .unsupportedGuide:
+                return .generationFailed("the prompt uses guidance this Foundation Models runtime does not support")
+            case .unsupportedLanguageOrLocale:
+                return .generationFailed("the model does not support the requested language or locale")
+            case .decodingFailure:
+                return .generationFailed("the model response could not be decoded into Rivet's commit draft")
+            @unknown default:
                 return .generationFailed(error.localizedDescription)
             }
         }
