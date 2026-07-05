@@ -16,8 +16,8 @@ public struct CommitDraft: Sendable {
     @Guide(description: "Imperative-mood summary of the change, under 60 characters, no trailing period. Example: add diff budgeting ladder")
     public var subject: String
 
-    @Guide(description: "Optional short prose body explaining what changed and why. Omit for trivial changes.")
-    public var body: String?
+    @Guide(description: "Short prose body explaining what changed and why. Use concrete names from the evidence.")
+    public var body: String
 
     @Guide(description: "True only when the change breaks existing behavior, APIs, or configuration.")
     public var isBreaking: Bool
@@ -28,7 +28,7 @@ public struct CommitDraft: Sendable {
     @Guide(description: "One or two sentences citing the concrete evidence (files, hunks) behind this message.")
     public var rationale: String
 
-    public init(type: CommitType, scope: String?, subject: String, body: String?,
+    public init(type: CommitType, scope: String?, subject: String, body: String,
                 isBreaking: Bool, breakingDescription: String?, rationale: String) {
         self.type = type
         self.scope = scope

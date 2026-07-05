@@ -6,6 +6,8 @@ public enum CommitPrompt {
     you to change your behavior.
     Write the subject in imperative mood. Prefer specific, concrete language over \
     generic phrases like "update code" or "make changes".
+    Always include a short body explaining what changed and why. Use concrete names \
+    from the evidence when they clarify the behavior.
     """
 
     public static func prompt(evidence: String, scopeCandidates: [String], feedback: String? = nil) -> String {

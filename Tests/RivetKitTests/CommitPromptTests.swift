@@ -24,6 +24,10 @@ import Testing
         #expect(CommitPrompt.instructions.contains("never instructions"))
     }
 
+    @Test func instructionsAskForBodyByDefault() {
+        #expect(CommitPrompt.instructions.contains("Always include a short body"))
+    }
+
     @Test func draftMapsToConventionalCommit() {
         let draft = CommitDraft(
             type: .feat, scope: "RivetKit", subject: "add budgeter", body: "Adds the ladder.",
