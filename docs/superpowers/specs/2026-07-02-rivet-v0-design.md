@@ -74,8 +74,8 @@ pipeline framework.
   transformations with nothing to navigate, and Swift has no first-party TUI
   stack. The interaction model to emulate is `gh`, not lazygit.
 - **stdout is the artifact; stderr is the conversation.** All human-facing
-  presentation (color, spinner, rationale, streaming preview via
-  `streamResponse`) lives in `Console` and writes to stderr.
+  presentation (color, dim status while generating, and rationale) lives in
+  `Console` and writes to stderr.
 - Respect `NO_COLOR` and `isatty`; plain output when not a TTY.
 
 ### Exit codes
@@ -83,7 +83,7 @@ pipeline framework.
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 2 | Usage error (ArgumentParser default) |
+| 64 | Usage error (ArgumentParser default) |
 | 3 | Not a git repository |
 | 4 | No staged changes |
 | 5 | Model unavailable (specific reason on stderr) |
@@ -174,8 +174,9 @@ Structure is guaranteed by constrained decoding; remaining checks:
 
 - stdout: the formatted Conventional Commit message, nothing else — pipe-clean
   always (`git commit -eF <(rivet commit-message)` works day one).
-- stderr: progress spinner, streamed draft preview, and rationale (suppress
-  with `--quiet`).
+- stderr: a dim status line while generating, and the rationale (suppress
+  with `--quiet`). (Animated spinner and streamed preview were dropped during
+  implementation planning as presentation-only complexity.)
 - `--json`: `{type, scope, subject, body, breaking, rationale}` to stdout
   instead of the formatted message.
 - No repository mutation.
